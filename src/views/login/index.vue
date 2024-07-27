@@ -8,7 +8,7 @@
           class="w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
           type="text"
           id="username"
-          v-model="username"
+          v-model="user.username"
           required
         />
       </div>
@@ -18,7 +18,7 @@
           class="w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline"
           type="password"
           id="password"
-          v-model="password"
+          v-model="user.password"
           required
         />
       </div>
@@ -31,25 +31,58 @@
       </button>
     </form>
   </div>
+  <div class="absolute bottom-0 left-0 right-0 flex justify-center">
+    <Toast />
+  </div>
 </template>
 
 <script>
-  import Toast from 'primevue/toast';
   import Button from 'primevue/button';
-  import DatePicker from 'primevue/datepicker';
 
   export default {
     data() {
       return {
-        username: '',
-        password: ''
+        user: {
+          username: '',
+          password: ''
+        }
       };
     },
     methods: {
       submitForm() {
-        console.log('Username:', this.username);
-        console.log('Password:', this.password);
-        // 在这里添加你的登录逻辑
+        this.$axios(
+          {
+            method: 'post',
+            url: '/login',
+            data: this.user
+          },
+          {
+            throttle: true // 启用节流
+          }
+        )
+          .then((response) => {
+            if (response === null) {
+              console.log('请求被节流，请稍后再试');
+              return;
+            }
+            if (response && response.status == 200) {
+              this.$toast.add({
+                severity: 'success',
+                detail: '登录成功',
+                life: 3000
+              });
+              localStorage.setItem('token', response.token);
+            } else if (response && response.status == 401) {
+              this.$toast.add({
+                severity: 'error',
+                detail: '登陆失败，请检查是否正确',
+                life: 3000
+              });
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
     }
   };

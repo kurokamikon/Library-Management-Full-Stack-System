@@ -87,10 +87,9 @@
     },
     methods: {
       submitForm() {
-        console.log('user:', this.user);
         this.$axios({
           method: 'post',
-          url: 'http://127.0.0.1:3000/register',
+          url: '/register',
           data: this.user
         })
           .then((response) => {
