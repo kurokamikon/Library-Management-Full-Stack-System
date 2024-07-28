@@ -121,7 +121,7 @@ function Axios(axiosConfig, customOptions = {}, loadingOptions = {}) {
   // 根据是否启用节流来选择使用哪个函数
   return custom_options.throttle ? throttledAxios(axiosConfig) : service(axiosConfig);
 }
-
+export { Axios };
 export default {
   install(app) {
     app.config.globalProperties.$axios = Axios;

@@ -1,3 +1,4 @@
+import { Axios } from '../utils/request.js';
 export async function beforeEach(to, from, next) {
   const token = localStorage.getItem('token');
 
@@ -5,16 +6,19 @@ export async function beforeEach(to, from, next) {
     if (token) {
       try {
         // 发送 token 到后端进行验证
-        const response = await Axios.post('/verify-token', { token });
+        const response = await Axios({
+          method: 'post',
+          url: '/api/verify-token',
+          data: { token }
+        });
         if (response.data.valid) {
           next(); // token 有效，允许跳转
         } else {
-          localStorage.removeItem('sessionToken'); // token 无效，移除并重定向到登录页面
+          localStorage.removeItem('token'); // token 过期，移除并重定向到登录页面
           next({ path: '/login' });
         }
       } catch (error) {
-        console.error('Token 验证失败:', error);
-        localStorage.removeItem('sessionToken');
+        localStorage.removeItem('token');
         next({ path: '/login' });
       }
     } else {
