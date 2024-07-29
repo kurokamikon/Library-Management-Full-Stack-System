@@ -1,5 +1,7 @@
 <template>
-  <div class="flex items-center justify-center h-screen bg-gray-200">
+  <div
+    class="flex items-center justify-center h-screen bg-gray-200 bg-[url('@/assets/img/background.jpg')] bg-cover bg-center bg-no-repeat"
+  >
     <form class="w-96 m-6 p-6 bg-white rounded-lg shadow-xl" @submit.prevent="submitForm">
       <h1 class="text-3xl font-bold mb-5">登录</h1>
       <div class="mb-5">
@@ -38,7 +40,6 @@
 
 <script>
   import Button from 'primevue/button';
-
   export default {
     data() {
       return {
@@ -72,6 +73,8 @@
                 life: 3000
               });
               localStorage.setItem('token', response.token);
+              this.$options.methods.setUser(response.data);
+              this.$router.replace('/home');
             } else if (response && response.status == 401) {
               this.$toast.add({
                 severity: 'error',

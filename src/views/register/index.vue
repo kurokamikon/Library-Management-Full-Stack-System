@@ -1,5 +1,7 @@
 <template>
-  <div class="flex items-center justify-center h-screen bg-gray-200">
+  <div
+    class="flex items-center justify-center h-screen bg-gray-200 bg-[url('@/assets/img/background.jpg')] bg-cover bg-center bg-no-repeat"
+  >
     <form class="w-96 m-6 p-6 bg-white rounded-lg shadow-xl" @submit.prevent="submitForm">
       <h1 class="text-3xl font-bold mb-5">注册</h1>
       <div class="mb-5">
@@ -63,7 +65,6 @@
 </template>
 
 <script>
-  import { useRouter } from 'vue-router';
   import Avatar from 'primevue/avatar';
   import Button from 'primevue/button';
   import Toast from 'primevue/toast';

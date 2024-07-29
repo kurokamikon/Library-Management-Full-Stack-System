@@ -1,7 +1,7 @@
 import { Axios } from '../utils/request.js';
+import Toast from 'primevue/toast';
 export async function beforeEach(to, from, next) {
   const token = localStorage.getItem('token');
-
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (token) {
       try {

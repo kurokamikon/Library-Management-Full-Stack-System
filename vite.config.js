@@ -9,5 +9,10 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src') // 设置 '@' 符号为 'src' 目录的别名
     }
+  },
+  server: {
+    hmr: {
+      overlay: true
+    }
   }
 });

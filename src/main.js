@@ -5,11 +5,11 @@ import App from './App.vue';
 import router from './router';
 import axiosPlugin from './utils/request';
 import PrimeVue from 'primevue/config';
-import Aura from '@/presets/lara';
+import Aura from './presets/lara';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 import VConsole from 'vconsole';
-
+import { state, userMethods } from './store/userState';
 const app = createApp(App);
 if (process.env.NODE_ENV === 'development') {
   const vConsole = new VConsole();
@@ -23,4 +23,12 @@ app
   .use(axiosPlugin)
   .use(ToastService);
 app.component('Toast', Toast);
+app.mixin({
+  data() {
+    return {
+      globalUser: state
+    };
+  },
+  methods: userMethods
+});
 router.isReady().then(() => app.mount('#app'));
