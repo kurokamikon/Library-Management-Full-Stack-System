@@ -2,7 +2,10 @@ import { Axios } from '../utils/request.js';
 import Toast from 'primevue/toast';
 export async function beforeEach(to, from, next) {
   const token = localStorage.getItem('token');
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
+  if (
+    to.matched.some((record) => record.meta.requiresAuth) &&
+    !from.matched.some((record) => record.meta.requiresAuth)
+  ) {
     if (token) {
       try {
         // 发送 token 到后端进行验证
@@ -25,6 +28,6 @@ export async function beforeEach(to, from, next) {
       next({ path: '/login' }); // 没有 token，重定向到登录页面
     }
   } else {
-    next(); // 不需要验证的路由，直接允许跳转
+    next(); // 不需要验证的路由或在已认证的路由内部跳转，直接允许
   }
 }
