@@ -7,7 +7,7 @@ const LoadingInstance = {
 };
 
 function getTokenAUTH() {
-  return '5555555555';
+  return localStorage.getItem('token') ? localStorage.getItem('token') : null;
 }
 
 function removePending(config) {

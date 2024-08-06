@@ -8,7 +8,8 @@
         <Button
           icon="pi pi-align-justify"
           @click="visible = true"
-          class="w-8 h-8 flex items-center justify-center border bg-white text-gray-900 hover:text-white"
+          class="w-8 h-8 flex items-center justify-center border bg-white hover:bg-gray-100"
+          style="color: #6b7280"
         />
       </div>
       <div class="flex items-center">
@@ -20,8 +21,8 @@
     <!-- 主要内容区域 -->
     <div class="flex-grow flex overflow-hidden">
       <!-- 大屏幕固定侧边栏 -->
-      <div class="hidden lg:block w-64 border-r">
-        <Menu :model="items" class="w-full h-full" />
+      <div class="hidden lg:block border-r">
+        <Menu :model="items" class="w-60 h-full" />
       </div>
 
       <!-- 小屏幕弹出抽屉 -->
