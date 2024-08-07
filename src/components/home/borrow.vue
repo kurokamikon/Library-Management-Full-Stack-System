@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="flex items-center justify-start gap-2 my-6 mx-3">
+    <div class="flex items-center justify-start gap-2 mb-6 md:mt-2 md:mb-6 mx-3">
       <span class="text-base font-bold text-nowrap">搜索图书:</span>
       <div class="ml-4">
         <InputGroup>
-          <InputText placeholder="搜索" style="box-shadow: none" />
-          <Button icon="pi pi-search" severity="info" />
+          <InputText v-model="searchKey" placeholder="搜索图书" style="box-shadow: none" @keyup.enter="fetchBooks" />
+          <Button icon="pi pi-search" severity="info" @click="fetchBooks" />
         </InputGroup>
       </div>
     </div>
@@ -14,9 +14,9 @@
         <template #list="slotProps">
           <div v-for="(item, index) in slotProps.items" :key="index">
             <div class="flex flex-col sm:flex-row sm:items-center p-6 gap-4">
-              <div class="md:w-40 relative">
+              <div class="w-full sm:w-40 md:w-40 relative">
                 <img
-                  class="block xl:block mx-auto rounded w-full"
+                  class="block w-full h-auto object-cover rounded"
                   :src="`${baseUrl}${item.imageURL}`"
                   :alt="item.name"
                 />
@@ -27,20 +27,20 @@
                   style="left: 4px; top: 4px"
                 ></Tag>
               </div>
-              <div class="flex flex-col md:flex-row md:items-center flex-1 gap-2 md:gap-6">
+              <div class="flex flex-col md:flex-row md:items-start flex-1 gap-2 md:gap-6">
                 <div class="flex flex-row md:flex-col justify-between items-start gap-2 flex-shrink-0 md:min-w-[170px]">
                   <div>
                     <span class="font-medium text-surface-500 dark:text-surface-400 text-sm">{{
                       item.category.name
                     }}</span>
-                    <div class="text-lg font-medium mt-2">{{ item.name }}</div>
+                    <div class="text-lg mt-2 font-bold">{{ item.name }}</div>
                   </div>
                 </div>
                 <div class="flex flex-row md:flex-col justify-between items-start gap-1">
                   <div>
                     <span class="font-medium text-surface-500 text-sm">简介：</span>
                     <div
-                      class="text-sm font-medium mt-2 overflow-hidden text-surface-500"
+                      class="text-sm font-medium mt-2 overflow-hidden text-surface-500 md:text-base"
                       style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical"
                     >
                       {{ item.description }}
@@ -64,6 +64,12 @@
           </div>
         </template>
       </DataView>
+      <Paginator
+        :rows="itemsPerPage"
+        :totalRecords="totalItems"
+        :first="(currentPage - 1) * itemsPerPage"
+        @page="onPageChange($event)"
+      ></Paginator>
     </div>
   </div>
   <Dialog v-model:visible="visible" modal header="请选择归还日期" :style="{ width: '25rem' }">
@@ -75,6 +81,9 @@
       <Button type="button" label="确定" @click="confirmBorrow"></Button>
     </div>
   </Dialog>
+  <div class="absolute bottom-0 left-0 right-0 flex justify-center">
+    <Toast />
+  </div>
 </template>
 <script>
   import DataView from 'primevue/dataview';
@@ -84,6 +93,7 @@
   import InputText from 'primevue/inputtext';
   import Dialog from 'primevue/dialog';
   import DatePicker from 'primevue/datepicker';
+  import Paginator from 'primevue/paginator';
 
   export default {
     components: {
@@ -93,7 +103,8 @@
       InputGroup,
       InputText,
       Dialog,
-      DatePicker
+      DatePicker,
+      Paginator
     },
     data() {
       return {
@@ -106,11 +117,15 @@
           returnTime: null,
           borrower: JSON.parse(localStorage.getItem('user'))?.username,
           code: JSON.parse(localStorage.getItem('user'))?.id
-        }
+        },
+        searchKey: '',
+        currentPage: 1,
+        itemsPerPage: 5,
+        totalItems: 0
       };
     },
     mounted() {
-      this.currentBooks();
+      this.fetchBooks();
     },
     methods: {
       getSeverity(product) {
@@ -123,19 +138,21 @@
             return 'secondary';
         }
       },
-      currentBooks() {
-        this.$axios(
-          {
-            method: 'get',
-            url: '/home/borrow'
-          },
-          {
-            throttle: true // 启用节流
+      fetchBooks(page = 1) {
+        this.$axios({
+          method: 'get',
+          url: '/home/books',
+          params: {
+            searchKey: this.searchKey,
+            page: page,
+            limit: this.itemsPerPage
           }
-        )
+        })
           .then((response) => {
             if (response && response.status === 200) {
               this.products = response.data.data;
+              this.totalItems = response.data.pagination.totalItems;
+              this.currentPage = response.data.pagination.currentPage;
             }
           })
           .catch((error) => {
@@ -144,8 +161,12 @@
           });
       },
       borrowBook(id) {
+        this.addAttribute.returnTime = null;
         this.addAttribute.bookId = id;
         this.visible = true;
+      },
+      onPageChange(event) {
+        this.fetchBooks(event.page + 1);
       },
       confirmBorrow() {
         const requiredFields = ['bookId', 'returnTime', 'borrower', 'code'];
@@ -158,29 +179,38 @@
         );
 
         if (missingFields.length > 0) {
-          // 使用 element-ui 的消息提示（假设你使用的是 element-ui）
-          alert('出错，请重新登录');
+          this.$toast.add({
+            severity: 'error',
+            detail: '借阅失败',
+            life: 3000
+          });
           return;
         }
-        // this.$axios(
-        //   {
-        //     method: 'post',
-        //     url: 'home/borrow',
-        //     data: this.addAttribute
-        //   },
-        //   {
-        //     throttle: true // 启用节流
-        //   }
-        // )
-        //   .then((response) => {
-        //     if (response && response.status === 200) {
-        //       console.log(response);
-        //     }
-        //   })
-        //   .catch((error) => {
-        //     console.log(error);
-        //     // 处理错误
-        //   });
+        this.$axios(
+          {
+            method: 'post',
+            url: 'home/borrow',
+            data: this.addAttribute
+          },
+          {
+            throttle: true // 启用节流
+          }
+        )
+          .then((response) => {
+            if (response && response.status === 200) {
+              this.$toast.add({
+                severity: 'success',
+                detail: '借阅成功',
+                life: 3000
+              });
+              this.visible = false;
+              this.fetchBooks('');
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            // 处理错误
+          });
       }
     }
   };

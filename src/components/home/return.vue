@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="flex items-center justify-start gap-2 my-6 mx-3">
+    <div class="flex items-center justify-start gap-2 mb-6 md:mt-2 md:mb-6 mx-3">
       <span class="text-base font-bold text-nowrap">借阅记录:</span>
       <div class="ml-4">
         <InputGroup>

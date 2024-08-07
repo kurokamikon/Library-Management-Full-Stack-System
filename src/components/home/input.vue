@@ -207,6 +207,7 @@
                   detail: '上传成功',
                   life: 3000
                 });
+                this.resetForm();
               }
             })
             .catch((error) => {
@@ -227,6 +228,19 @@
           this.BookInformation.location &&
           this.BookInformation.image
         );
+      },
+      resetForm() {
+        this.BookInformation = {
+          name: null,
+          author: null,
+          description: null,
+          price: null,
+          category: null,
+          location: null,
+          image: null,
+          imagePreview: null
+        };
+        this.isSubmitted = false;
       }
     }
   };
