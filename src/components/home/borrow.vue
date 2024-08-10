@@ -116,7 +116,8 @@
           bookId: null,
           returnTime: null,
           borrower: JSON.parse(localStorage.getItem('user'))?.username,
-          code: JSON.parse(localStorage.getItem('user'))?.id
+          code: JSON.parse(localStorage.getItem('user'))?.id,
+          seID: JSON.parse(localStorage.getItem('user'))?.seID
         },
         searchKey: '',
         currentPage: 1,
@@ -169,7 +170,7 @@
         this.fetchBooks(event.page + 1);
       },
       confirmBorrow() {
-        const requiredFields = ['bookId', 'returnTime', 'borrower', 'code'];
+        const requiredFields = ['bookId', 'returnTime', 'borrower', 'code', 'seID'];
         const missingFields = requiredFields.filter(
           (field) =>
             !this.addAttribute[field] ||

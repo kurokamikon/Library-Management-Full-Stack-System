@@ -21,38 +21,50 @@
       >
         <Column header="状态" style="min-width: 100px">
           <template #body="slotProps">
-            <Tag :value="slotProps.data.inventoryStatus" :severity="getSeverity(slotProps.data)" />
+            <Tag :value="slotProps.data.inventoryStatus" :severity="getSeverity(slotProps.data.inventoryStatus)" />
           </template>
         </Column>
         <Column header="封面" style="min-width: 100px">
           <template #body="slotProps">
-            <img
-              :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`"
-              :alt="slotProps.data.image"
-              class="w-24 rounded"
-            />
+            <img :src="`${baseUrl}${slotProps.data.imageURL}`" :alt="slotProps.data.image" class="w-24 rounded" />
           </template>
         </Column>
         <Column field="name" header="书名" style="min-width: 120px"></Column>
-        <Column field="category" header="作者" style="min-width: 100px"></Column>
+        <Column field="author" header="作者" style="min-width: 120px"></Column>
         <Column field="price" header="价格" style="min-width: 100px">
           <template #body="slotProps"> {{ slotProps.data.price }}元 </template>
         </Column>
 
         <Column field="borrower" header="借阅人" style="min-width: 100px"></Column>
-        <Column field="code" header="学号/工号" style="min-width: 120px"></Column>
-        <Column field="dateDue" header="应还日期" style="min-width: 120px"></Column>
-        <Column field="status" header="更改状态" style="min-width: 160px">
-          <template #body="slotProps"
-            ><SelectButton
-              v-model="slotProps.data.status"
-              :options="statusOptions"
-              aria-labelledby="contrast"
-              style="font-size: 0.75rem"
-          /></template>
+        <Column field="seID" header="学号/工号" style="min-width: 120px"></Column>
+        <Column field="returnTime" header="应还日期" style="min-width: 120px">
+          <template #body="slotProps">
+            {{
+              new Date(slotProps.data.returnTime).toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              })
+            }}
+          </template></Column
+        >
+        <Column v-if="isAdmin" field="status" header="更改状态" style="min-width: 160px">
+          <template #body="slotProps">
+            <Toast />
+            <ConfirmPopup></ConfirmPopup>
+            <Button
+              v-if="slotProps.data.inventoryStatus !== '已归还'"
+              @click="btnConfirm($event, slotProps.data.code, slotProps.data.bookId)"
+              label="还书"
+              outlined
+              severity="secondary"
+              rounded
+              class="text-sm px-2 py-1"
+            ></Button
+          ></template>
         </Column>
         <template #footer>
-          <div>总共有 {{ products ? products.length : 0 }} 本书未还</div>
+          <div>总共有 {{ totalCount }} 本书未还</div>
         </template>
       </DataTable>
     </div>
@@ -67,6 +79,8 @@
   import InputGroup from 'primevue/inputgroup';
   import InputText from 'primevue/inputtext';
   import SelectButton from 'primevue/selectbutton';
+  import Paginator from 'primevue/paginator';
+  import ConfirmPopup from 'primevue/confirmpopup';
   export default {
     components: {
       DataTable,
@@ -75,32 +89,22 @@
       Tag,
       InputGroup,
       InputText,
-      SelectButton
+      SelectButton,
+      Paginator,
+      ConfirmPopup
     },
     data() {
       return {
-        products: [
-          {
-            id: '1000',
-            code: 'f230fh0g3',
-            name: '易中天品中国',
-            description: 'Product Description',
-            image: 'bamboo-watch.jpg',
-            price: 126.65,
-            category: '易中天',
-            dateDue: '2024/8/5',
-            inventoryStatus: '借阅中',
-            rating: 4,
-            borrower: '王子豪',
-            status: '未归还'
-          }
-        ],
-        statusOptions: ['未归还', '已归还']
+        baseUrl: import.meta.env.VITE_BASE_URL,
+        products: [],
+        statusOptions: ['未归还', '已归还'],
+        isAdmin: null,
+        totalCount: null
       };
     },
     methods: {
       getSeverity(product) {
-        switch (product.inventoryStatus) {
+        switch (product) {
           case '已归还':
             return 'success';
           case '已逾期':
@@ -108,7 +112,77 @@
           default:
             return 'secondary';
         }
+      },
+      getBRInfo(searchKey, id) {
+        this.$axios({
+          method: 'get',
+          url: '/home/return',
+          params: {
+            userId: id,
+            searchKey
+          }
+        })
+          .then((response) => {
+            if (response && response.status === 200) {
+              this.products = response.data.data;
+              this.isAdmin = response.data.isAdmin;
+              this.totalCount = response.data.totalCount;
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            // 处理错误
+          });
+      },
+      btnConfirm(event, userId, bookId) {
+        this.$confirm.require({
+          target: event.currentTarget,
+          message: '确定进行还书操作吗？',
+          icon: 'pi pi-sign-in',
+          rejectProps: {
+            label: '再看看',
+            severity: 'secondary',
+            outlined: true
+          },
+          acceptProps: {
+            label: '确定'
+          },
+          accept: () => {
+            this.$axios(
+              {
+                method: 'post',
+                url: '/home/return',
+                data: {
+                  userId,
+                  bookId
+                }
+              },
+              {
+                throttle: true // 启用节流
+              }
+            )
+              .then((response) => {
+                if (response && response.status == 200) {
+                  this.$toast.add({
+                    severity: 'success',
+                    detail: '归还成功',
+                    life: 3000
+                  });
+                  this.getBRInfo(undefined, this.userId);
+                }
+              })
+              .catch((error) => {
+                console.log(error);
+                // 处理错误
+              });
+          }
+        });
       }
+    },
+    mounted() {
+      const { id, username } = JSON.parse(localStorage.getItem('user'));
+      this.userId = id;
+      this.getBRInfo(undefined, this.userId);
     }
   };
 </script>

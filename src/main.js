@@ -8,6 +8,7 @@ import PrimeVue from 'primevue/config';
 import Aura from './presets/lara';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 import VConsole from 'vconsole';
 import { state, userMethods } from './store/userState';
 const app = createApp(App);
@@ -21,7 +22,8 @@ app
     pt: Aura
   })
   .use(axiosPlugin)
-  .use(ToastService);
+  .use(ToastService)
+  .use(ConfirmationService);
 app.component('Toast', Toast);
 app.mixin({
   data() {
