@@ -51,7 +51,7 @@
         <Column v-if="isAdmin" field="status" header="更改状态" style="min-width: 160px">
           <template #body="slotProps">
             <Toast />
-            <ConfirmPopup></ConfirmPopup>
+            <ConfirmPopup class="shadow-sm"></ConfirmPopup>
             <Button
               v-if="slotProps.data.inventoryStatus !== '已归还'"
               @click="btnConfirm($event, slotProps.data.code, slotProps.data.bookId)"
