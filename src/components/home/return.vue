@@ -4,8 +4,8 @@
       <span class="text-base font-bold text-nowrap">借阅记录:</span>
       <div class="ml-4">
         <InputGroup>
-          <InputText placeholder="搜索" style="box-shadow: none" />
-          <Button icon="pi pi-search" severity="info" />
+          <InputText v-model="searchKey" placeholder="搜索" style="box-shadow: none" @keyup.enter="getBRInfo" />
+          <Button icon="pi pi-search" severity="info" @click="getBRInfo" />
         </InputGroup>
       </div>
     </div>
@@ -99,7 +99,8 @@
         products: [],
         statusOptions: ['未归还', '已归还'],
         isAdmin: null,
-        totalCount: null
+        totalCount: null,
+        searchKey: ''
       };
     },
     methods: {
@@ -113,13 +114,13 @@
             return 'secondary';
         }
       },
-      getBRInfo(searchKey, id) {
+      getBRInfo() {
         this.$axios({
           method: 'get',
           url: '/home/return',
           params: {
-            userId: id,
-            searchKey
+            userId: this.userId,
+            searchKey: this.searchKey
           }
         })
           .then((response) => {
@@ -168,7 +169,7 @@
                     detail: '归还成功',
                     life: 3000
                   });
-                  this.getBRInfo(undefined, this.userId);
+                  this.getBRInfo();
                 }
               })
               .catch((error) => {
@@ -182,7 +183,7 @@
     mounted() {
       const { id, username } = JSON.parse(localStorage.getItem('user'));
       this.userId = id;
-      this.getBRInfo(undefined, this.userId);
+      this.getBRInfo();
     }
   };
 </script>
