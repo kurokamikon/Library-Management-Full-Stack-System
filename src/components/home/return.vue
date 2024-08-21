@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="flex items-center justify-start gap-2 mb-6 md:mt-2 md:mb-6 mx-3">
+    <div class="flex items-center justify-start gap-2 my-4 mx-3">
       <span class="text-base font-bold text-nowrap">借阅记录:</span>
       <div class="ml-4">
         <InputGroup>
@@ -50,7 +50,6 @@
         >
         <Column v-if="isAdmin" field="status" header="更改状态" style="min-width: 160px">
           <template #body="slotProps">
-            <Toast />
             <ConfirmPopup class="shadow-sm"></ConfirmPopup>
             <Button
               v-if="slotProps.data.inventoryStatus !== '已归还'"
@@ -68,6 +67,9 @@
         </template>
       </DataTable>
     </div>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 flex justify-center">
+    <Toast />
   </div>
 </template>
 

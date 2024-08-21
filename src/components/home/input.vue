@@ -1,7 +1,6 @@
 <template>
-  <div class="p-4 sm:p-8 bg-white rounded-lg shadow-md overflow-auto h-full">
-    <p class="text-xl font-bold mb-4 sm:mb-6 text-gray-800">图书信息录入</p>
-    <form @submit.prevent="submitForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+  <div class="lg:mt-2 rounded-lg shadow-md overflow-auto h-full mt-3 p-3">
+    <form @submit.prevent="submitForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:mt-4">
       <div class="space-y-4 md:col-span-2">
         <div class="w-full">
           <label for="name" class="block text-sm font-medium text-gray-700 mb-1"

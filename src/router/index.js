@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import routes from './routes';
+import { constantRoutes } from './routes';
 import { beforeEach } from './guards';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes: constantRoutes
 });
 router.beforeEach(beforeEach);
 export default router;

@@ -1,34 +1,42 @@
-const routes = [
-  { path: '/', component: () => import('../views/login/index.vue') },
-  { path: '/login', component: () => import('../views/login/index.vue') },
-  { path: '/register', component: () => import('../views/register/index.vue') },
+const asyncRoutes = [
   {
     path: '/home',
     component: () => import('../views/home/index.vue'),
     meta: { requiresAuth: true },
     children: [
       {
-        path: '/home/borrow',
-        component: () => import('@/components/home/borrow.vue')
+        path: 'borrow',
+        component: () => import('@/components/home/borrow.vue'),
+        meta: { roles: ['user', 'admin'] }
       },
       {
-        path: '/home/return',
-        component: () => import('@/components/home/return.vue')
+        path: 'return',
+        component: () => import('@/components/home/return.vue'),
+        meta: { roles: ['user', 'admin'] }
       },
       {
-        path: '/home/recharge',
-        component: () => import('@/components/home/recharge.vue')
+        path: 'recharge',
+        component: () => import('@/components/home/recharge.vue'),
+        meta: { roles: ['user', 'admin'] }
       },
       {
-        path: '/home/add',
-        component: () => import('@/components/home/add.vue')
+        path: 'add',
+        component: () => import('@/components/home/add.vue'),
+        meta: { roles: ['admin'] }
       },
       {
-        path: '/home/input',
-        component: () => import('@/components/home/input.vue')
+        path: 'input',
+        component: () => import('@/components/home/input.vue'),
+        meta: { roles: ['admin'] }
       }
     ]
   }
 ];
 
-export default routes;
+const constantRoutes = [
+  { path: '/', component: () => import('../views/login/index.vue') },
+  { path: '/login', component: () => import('../views/login/index.vue') },
+  { path: '/register', component: () => import('../views/register/index.vue') }
+];
+
+export { constantRoutes, asyncRoutes };

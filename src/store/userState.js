@@ -1,23 +1,33 @@
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 
 export const state = reactive({
-  user: {
-    username: null,
-    id: null
-  },
+  user: null,
   isLoggedIn: false
 });
+
+watch(
+  () => state.user,
+  (newValue) => {
+    if (newValue) {
+      localStorage.setItem('user', JSON.stringify(newValue));
+    } else {
+      localStorage.removeItem('user');
+    }
+  },
+  { deep: true }
+);
 
 export const userMethods = {
   setUser(userData) {
     state.user = userData;
     state.isLoggedIn = true;
-    localStorage.setItem('user', JSON.stringify(userData));
   },
   clearUser() {
-    state.user = null;
+    state.user = {
+      username: null,
+      id: null
+    };
     state.isLoggedIn = false;
-    localStorage.removeItem('user');
   },
   restoreUser() {
     const savedUser = localStorage.getItem('user');
@@ -27,3 +37,6 @@ export const userMethods = {
     }
   }
 };
+
+// 在创建 state 时立即尝试恢复用户数据
+userMethods.restoreUser();

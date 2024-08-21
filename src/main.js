@@ -31,6 +31,8 @@ app.mixin({
       globalUser: state
     };
   },
-  methods: userMethods
+  methods: {
+    ...userMethods
+  }
 });
 router.isReady().then(() => app.mount('#app'));

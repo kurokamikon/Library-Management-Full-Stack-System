@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <div class="flex items-center justify-start gap-2 mb-6 md:mt-2 md:mb-6 mx-3">
+    <div class="flex items-center justify-start gap-2 my-4 mx-3">
       <span class="text-base font-bold text-nowrap">搜索图书:</span>
       <div class="ml-4">
         <InputGroup>
@@ -55,7 +55,7 @@
                       label="借入"
                       :disabled="item.inventoryStatus === '不可借'"
                       class="flex-auto md:flex-initial whitespace-nowrap"
-                      @click="borrowBook(item._id)"
+                      @click="borrowBook(item._id, item.price)"
                     ></Button>
                   </div>
                 </div>
@@ -117,7 +117,8 @@
           returnTime: null,
           borrower: JSON.parse(localStorage.getItem('user'))?.username,
           code: JSON.parse(localStorage.getItem('user'))?.id,
-          seID: JSON.parse(localStorage.getItem('user'))?.seID
+          seID: JSON.parse(localStorage.getItem('user'))?.seID,
+          listPrice: null
         },
         searchKey: '',
         currentPage: 1,
@@ -161,16 +162,53 @@
             // 处理错误
           });
       },
-      borrowBook(id) {
-        this.addAttribute.returnTime = null;
-        this.addAttribute.bookId = id;
-        this.visible = true;
+      validateBal(listPrice) {
+        this.addAttribute.listPrice = listPrice;
+        return this.$axios({
+          method: 'post',
+          url: 'home/getValidateBal',
+          data: {
+            userId: JSON.parse(localStorage.getItem('user'))?.id,
+            listPrice
+          }
+        })
+          .then((response) => {
+            return response && response.status === 200 && response.message === true;
+          })
+          .catch((error) => {
+            console.log(error);
+            return false;
+          });
+      },
+      async borrowBook(id, listPrice) {
+        try {
+          const isBalanceValid = await this.validateBal(listPrice);
+          if (isBalanceValid) {
+            this.addAttribute.returnTime = null;
+            this.addAttribute.bookId = id;
+            this.visible = true;
+          } else {
+            this.$toast.add({
+              severity: 'error',
+              detail: '余额不足，请充值',
+              life: 3000
+            });
+          }
+        } catch (error) {
+          console.error('借书过程中出错:', error);
+          this.$toast.add({
+            severity: 'error',
+            detail: '借书过程中出现错误，请稍后再试',
+            life: 3000
+          });
+        }
       },
       onPageChange(event) {
         this.fetchBooks(event.page + 1);
       },
       confirmBorrow() {
-        const requiredFields = ['bookId', 'returnTime', 'borrower', 'code', 'seID'];
+        console.log(this.addAttribute);
+        const requiredFields = ['bookId', 'returnTime', 'borrower', 'code', 'seID', 'listPrice'];
         const missingFields = requiredFields.filter(
           (field) =>
             !this.addAttribute[field] ||
@@ -178,7 +216,6 @@
             this.addAttribute[field] === null ||
             this.addAttribute[field] === 'undefined'
         );
-
         if (missingFields.length > 0) {
           this.$toast.add({
             severity: 'error',
@@ -199,6 +236,11 @@
         )
           .then((response) => {
             if (response && response.status === 200) {
+              let updatedUser = {
+                ...this.globalUser.user,
+                balance: response.data.newBalance.toString()
+              };
+              this.$options.methods.setUser(updatedUser);
               this.$toast.add({
                 severity: 'success',
                 detail: '借阅成功',

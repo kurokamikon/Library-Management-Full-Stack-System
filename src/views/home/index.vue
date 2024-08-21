@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen">
+  <div class="flex flex-col h-screen min-w-[300px]">
     <!-- 顶部导航栏 -->
     <div
       class="box-border w-full h-12 relative shadow flex items-center justify-center lg:justify-start flex-shrink-0 bg-gradient-to-r bg-blue-400"
@@ -33,28 +33,35 @@
       </div>
 
       <!-- 主要内容 -->
-      <div class="flex flex-col flex-grow p-4 overflow-y-auto bg-slate-100">
-        <!-- 这里放置您的主要内容 -->
-        <h1 class="text-lg font-bold lg:text-2xl">
-          欢迎<span>{{ userName }}</span
-          >使用图书管理系统
-        </h1>
-        <div class="my-4 justify-center grid grid-cols-5 gap-5">
+      <div class="flex flex-col flex-grow p-4 overflow-y-auto">
+        <div class="bg-[url('@/assets/img/summerbeach.jpg')] bg-cover bg-top bg-no-repeat rounded-xl">
           <div
-            v-for="(item, index) in buttonItems"
-            :key="index"
-            class="flex flex-col items-center justify-center"
-            @click="navigateTo(item.route)"
+            class="text-white text-xl lg:text-2xl ml-5 lg:ml-12 mt-4 font-semibold"
+            style="text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.8)"
           >
+            <span>余额：</span>
+            <span>{{ balance }}￥</span>
+          </div>
+          <div class="flex justify-around lg:pb-3">
             <div
-              class="w-16 h-16 my-3 md:w-20 md:h-20 md:my-4 lg:w-24 lg:h-24 lg:my-6 lg:mb-2 rounded-full flex items-center text-white cursor-pointer backdrop-filter backdrop-blur-lg relative justify-evenly shadow-lg"
-              :class="item.bgClass"
+              v-for="(item, index) in buttonItems"
+              :key="index"
+              class="flex flex-col items-center justify-center"
+              @click="navigateTo(item.route)"
             >
-              <i :class="['pi', item.icon, 'text-base md:text-2xl lg:text-3xl text-white hidden mg:block']"></i>
-              <span class="lg:hidden text-base md:text-lg font-semibold">{{ item.text }}</span>
-            </div>
-            <div :class="[item.textClass, 'hidden lg:block lg:text-lg font-semibold cursor-pointer']">
-              {{ item.text }}
+              <div
+                class="w-16 h-16 my-3 md:w-20 md:h-20 md:my-4 lg:w-24 lg:h-24 lg:mb-2 rounded-full flex items-center text-white cursor-pointer backdrop-filter backdrop-blur-lg relative justify-evenly shadow-lg"
+                :class="item.bgClass"
+              >
+                <i :class="['pi', item.icon, 'text-base md:text-2xl lg:text-3xl text-white hidden mg:block']"></i>
+                <span class="lg:hidden text-base md:text-lg font-semibold">{{ item.text }}</span>
+              </div>
+              <div
+                :class="['text-white hidden lg:block lg:text-lg font-semibold cursor-pointer']"
+                style="text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.8)"
+              >
+                {{ item.text }}
+              </div>
             </div>
           </div>
         </div>
@@ -100,61 +107,41 @@
             ]
           }
         ],
-        buttonItems: [
-          {
-            icon: 'pi-clock',
-            text: '还书',
-            bgClass: 'bg-gradient-to-r from-green-400 to-teal-300 shadow-green-300/50',
-            textClass: 'text-green-400',
-            route: '/home/return'
-          },
-          {
-            icon: 'pi-book',
-            text: '借书',
-            bgClass: 'bg-gradient-to-r from-purple-400 to-purple-300 shadow-purple-300/50',
-            textClass: 'text-purple-400',
-            route: '/home/borrow'
-          },
-          {
-            icon: 'pi-dollar',
-            text: '充值',
-            bgClass: 'bg-gradient-to-r from-yellow-400 to-orange-300 shadow-yellow-300/50',
-            textClass: 'text-orange-400',
-            route: '/home/recharge'
-          },
-          {
-            icon: 'pi-user',
-            text: '新增',
-            bgClass: 'bg-gradient-to-r from-blue-400 to-indigo-300 shadow-blue-300/50',
-            textClass: 'text-blue-400',
-            route: '/home/add'
-          },
-          {
-            icon: 'pi-plus',
-            text: '录入',
-            bgClass: 'bg-gradient-to-r from-red-400 to-pink-300 shadow-red-300/50',
-            textClass: 'text-red-400',
-            route: '/home/input'
-          }
-        ]
+        buttonItems: []
       };
     },
     computed: {
-      userName() {
-        return this.globalUser.user.username
-          ? this.globalUser.user.username
-          : JSON.parse(localStorage.getItem('user'))?.username || '您';
+      balance() {
+        return this.globalUser.user && this.globalUser.user.balance ? this.globalUser.user.balance : '0.00';
       }
     },
     methods: {
       navigateTo(route) {
         this.$router.replace(route);
+      },
+      checkAuth() {
+        this.$axios({
+          method: 'get',
+          url: '/home/checkAuth',
+          params: {
+            userId: this.globalUser.user.id
+          }
+        })
+          .then((response) => {
+            if (response && response.status === 200) {
+              this.buttonItems = response.message.buttonItems;
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
     },
     mounted() {
       if (this.$route.path === '/home') {
         this.navigateTo('/home/return');
       }
+      this.checkAuth();
     }
   };
 </script>
