@@ -183,7 +183,7 @@
       }
     },
     mounted() {
-      const { id, username } = JSON.parse(localStorage.getItem('user'));
+      const { id, username } = JSON.parse(sessionStorage.getItem('user'));
       this.userId = id;
       this.getBRInfo();
     }

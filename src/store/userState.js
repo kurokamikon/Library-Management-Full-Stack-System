@@ -2,16 +2,17 @@ import { reactive, watch } from 'vue';
 
 export const state = reactive({
   user: null,
-  isLoggedIn: false
+  isLoggedIn: false,
+  matchRoutes: []
 });
 
 watch(
   () => state.user,
   (newValue) => {
     if (newValue) {
-      localStorage.setItem('user', JSON.stringify(newValue));
+      sessionStorage.setItem('user', JSON.stringify(newValue));
     } else {
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
     }
   },
   { deep: true }
@@ -23,18 +24,18 @@ export const userMethods = {
     state.isLoggedIn = true;
   },
   clearUser() {
-    state.user = {
-      username: null,
-      id: null
-    };
+    state.user = null;
     state.isLoggedIn = false;
   },
   restoreUser() {
-    const savedUser = localStorage.getItem('user');
+    const savedUser = sessionStorage.getItem('user');
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       this.setUser(userData);
     }
+  },
+  setRouter(matchRoutes) {
+    state.matchRoutes = matchRoutes;
   }
 };
 

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { createRouter, createWebHistory } from 'vue-router';
+import router from '@/router/index.js';
 
 const pendingMap = new Map();
 const LoadingInstance = {
@@ -7,22 +9,91 @@ const LoadingInstance = {
 };
 
 function getTokenAUTH() {
-  return localStorage.getItem('token') ? localStorage.getItem('token') : null;
+  return sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).token : null;
 }
 
 function removePending(config) {
-  // 在这里添加移除 pending 请求的逻辑
+  const url = [config.method, config.url, JSON.stringify(config.params), JSON.stringify(config.data)].join('&');
+  if (pendingMap.has(url)) {
+    const cancel = pendingMap.get(url);
+    cancel(url);
+    pendingMap.delete(url);
+  }
 }
 
 function addPending(config) {
-  // 在这里添加添加 pending 请求的逻辑
+  const url = [config.method, config.url, JSON.stringify(config.params), JSON.stringify(config.data)].join('&');
+  config.cancelToken =
+    config.cancelToken ||
+    new axios.CancelToken((cancel) => {
+      if (!pendingMap.has(url)) {
+        pendingMap.set(url, cancel);
+      }
+    });
 }
 
 function httpErrorStatusHandle(error) {
-  // 在这里添加处理 HTTP 错误的逻辑
+  let message = '';
+  if (error && error.response) {
+    switch (error.response.status) {
+      case 302:
+        message = '接口重定向了！';
+        break;
+      case 400:
+        message = '参数不正确！';
+        break;
+      case 401:
+        message = '您未登录，或者登录已经超时，请先登录！';
+        break;
+      case 403:
+        message = '您没有权限操作！';
+        break;
+      case 404:
+        message = `请求地址出错: ${error.response.config.url}`;
+        break;
+      case 408:
+        message = '请求超时！';
+        break;
+      case 409:
+        message = '系统已存在相同数据！';
+        break;
+      case 500:
+        message = '服务器内部错误！';
+        break;
+      case 501:
+        message = '服务未实现！';
+        break;
+      case 502:
+        message = '网关错误！';
+        break;
+      case 503:
+        message = '服务不可用！';
+        break;
+      case 504:
+        message = '服务暂时无法访问，请稍后再试！';
+        break;
+      case 505:
+        message = 'HTTP版本不受支持！';
+        break;
+      default:
+        message = '异常问题，请联系管理员！';
+        break;
+    }
+  }
+  if (error.message.includes('timeout')) message = '网络请求超时！';
+  if (error.message.includes('Network')) message = '网络异常，请检查您的网络！';
+
+  console.error(message);
 }
 
-// 优化的节流函数
+function closeLoading(options) {
+  if (options.loading && LoadingInstance._count > 0) LoadingInstance._count--;
+  if (LoadingInstance._count === 0) {
+    LoadingInstance._target && LoadingInstance._target.close();
+    LoadingInstance._target = null;
+  }
+}
+
 function throttle(func, limit) {
   let inThrottle;
   return function (...args) {
@@ -40,7 +111,6 @@ function throttle(func, limit) {
   };
 }
 
-// 创建一个 Map 来存储节流后的请求函数
 const throttledRequests = new Map();
 
 function Axios(axiosConfig, customOptions = {}, loadingOptions = {}) {
@@ -57,13 +127,12 @@ function Axios(axiosConfig, customOptions = {}, loadingOptions = {}) {
       restore_data_format: true,
       error_message_show: true,
       code_message_show: false,
-      throttle: false, // 节流选项
-      throttleTime: 3000 // 默认节流时间为3秒
+      throttle: false,
+      throttleTime: 3000
     },
     customOptions
   );
 
-  // 优化的节流包装函数
   const throttledAxios = (config) => {
     const key = config.url + JSON.stringify(config.data || {});
     if (!throttledRequests.has(key)) {
@@ -104,7 +173,6 @@ function Axios(axiosConfig, customOptions = {}, loadingOptions = {}) {
       custom_options.loading && closeLoading(custom_options);
 
       if (custom_options.code_message_show && response.data && response.data.code !== 200) {
-        alert('error', '请求错误', response.data.msg);
         return Promise.reject(response.data);
       }
 
@@ -114,13 +182,18 @@ function Axios(axiosConfig, customOptions = {}, loadingOptions = {}) {
       error.config && removePending(error.config);
       custom_options.loading && closeLoading(custom_options);
       custom_options.error_message_show && httpErrorStatusHandle(error);
+      if (error.response && error.response.data.status === 401 && error.response.data.error === 'Token expired') {
+        console.log('Token expired, redirecting to login page');
+        sessionStorage.removeItem('user');
+        router.push('/login');
+      }
       return Promise.reject(error);
     }
   );
 
-  // 根据是否启用节流来选择使用哪个函数
   return custom_options.throttle ? throttledAxios(axiosConfig) : service(axiosConfig);
 }
+
 export { Axios };
 export default {
   install(app) {

@@ -115,9 +115,9 @@
         addAttribute: {
           bookId: null,
           returnTime: null,
-          borrower: JSON.parse(localStorage.getItem('user'))?.username,
-          code: JSON.parse(localStorage.getItem('user'))?.id,
-          seID: JSON.parse(localStorage.getItem('user'))?.seID,
+          borrower: JSON.parse(sessionStorage.getItem('user'))?.username,
+          code: JSON.parse(sessionStorage.getItem('user'))?.id,
+          seID: JSON.parse(sessionStorage.getItem('user'))?.seID,
           listPrice: null
         },
         searchKey: '',
@@ -168,7 +168,7 @@
           method: 'post',
           url: 'home/getValidateBal',
           data: {
-            userId: JSON.parse(localStorage.getItem('user'))?.id,
+            userId: JSON.parse(sessionStorage.getItem('user'))?.id,
             listPrice
           }
         })

@@ -17,22 +17,14 @@ if (process.env.NODE_ENV === 'development') {
 }
 app
   .use(router)
-  .use(PrimeVue, {
-    unstyled: true,
-    pt: Aura
-  })
+  .use(PrimeVue, { unstyled: true, pt: Aura })
   .use(axiosPlugin)
   .use(ToastService)
-  .use(ConfirmationService);
-app.component('Toast', Toast);
-app.mixin({
-  data() {
-    return {
-      globalUser: state
-    };
-  },
-  methods: {
-    ...userMethods
-  }
-});
+  .use(ConfirmationService)
+  .provide('router', router)
+  .component('Toast', Toast)
+  .mixin({
+    data: () => ({ globalUser: state }),
+    methods: { ...userMethods }
+  });
 router.isReady().then(() => app.mount('#app'));

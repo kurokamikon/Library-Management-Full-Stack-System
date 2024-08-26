@@ -40,6 +40,7 @@
 
 <script>
   import Button from 'primevue/button';
+  import { setupRoutes } from '@/router';
   export default {
     data() {
       return {
@@ -50,42 +51,48 @@
       };
     },
     methods: {
-      submitForm() {
-        this.$axios(
-          {
-            method: 'post',
-            url: '/login',
-            data: this.user
-          },
-          {
-            throttle: true // 启用节流
+      async submitForm() {
+        try {
+          const response = await this.$axios(
+            {
+              method: 'post',
+              url: '/login',
+              data: this.user
+            },
+            {
+              throttle: true
+            }
+          );
+
+          if (response === null) {
+            console.log('请求被节流，请稍后再试');
+            return;
           }
-        )
-          .then((response) => {
-            if (response === null) {
-              console.log('请求被节流，请稍后再试');
-              return;
-            }
-            if (response && response.status == 200) {
-              this.$toast.add({
-                severity: 'success',
-                detail: '登录成功',
-                life: 3000
-              });
-              localStorage.setItem('token', response.token);
-              this.$options.methods.setUser(response.data);
-              this.$router.replace('/home');
-            } else if (response && response.status == 401) {
-              this.$toast.add({
-                severity: 'error',
-                detail: '登陆失败，请检查是否正确',
-                life: 3000
-              });
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+
+          if (response && response.status == 200) {
+            this.$toast.add({
+              severity: 'success',
+              detail: '登录成功',
+              life: 3000
+            });
+
+            this.$options.methods.setUser(response.data);
+
+            // Setup routes before navigation
+            await setupRoutes();
+
+            // Now navigate
+            this.$router.replace('/home');
+          } else if (response && response.status == 401) {
+            this.$toast.add({
+              severity: 'error',
+              detail: '登陆失败，请检查是否正确',
+              life: 3000
+            });
+          }
+        } catch (error) {
+          console.log(error);
+        }
       }
     }
   };

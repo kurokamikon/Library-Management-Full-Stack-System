@@ -2,7 +2,7 @@ const asyncRoutes = [
   {
     path: '/home',
     component: () => import('../views/home/index.vue'),
-    meta: { requiresAuth: true },
+    meta: { roles: ['user', 'admin'] },
     children: [
       {
         path: 'borrow',
@@ -36,7 +36,11 @@ const asyncRoutes = [
 const constantRoutes = [
   { path: '/', component: () => import('../views/login/index.vue') },
   { path: '/login', component: () => import('../views/login/index.vue') },
-  { path: '/register', component: () => import('../views/register/index.vue') }
+  { path: '/register', component: () => import('../views/register/index.vue') },
+  {
+    path: '/:pathMatch(.*)*',
+    component: () => import('@/views/404/index.vue')
+  }
 ];
 
 export { constantRoutes, asyncRoutes };

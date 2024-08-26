@@ -117,9 +117,9 @@
         rechargeInfo: {
           price: null,
           contact: null,
-          userName: JSON.parse(localStorage.getItem('user'))?.username,
-          seID: JSON.parse(localStorage.getItem('user'))?.seID,
-          userId: JSON.parse(localStorage.getItem('user'))?.id
+          userName: JSON.parse(sessionStorage.getItem('user'))?.username,
+          seID: JSON.parse(sessionStorage.getItem('user'))?.seID,
+          userId: JSON.parse(sessionStorage.getItem('user'))?.id
         },
         categories: [
           { name: '小说', code: 'NOVEL' },
